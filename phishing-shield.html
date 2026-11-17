@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shield: Phishing Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f7;--surf:#fff;--ink:#12212b;--mut:#5b6b76;--line:#d9e1e6;--ok:#1b7f55;--warn:#b87503;--bad:#c4322a;--acc:#24577f;--okbg:#e3f4ec;--warnbg:#fbf0d9;--badbg:#fbe6e4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e171d;--surf:#16232b;--ink:#e6eef3;--mut:#93a5b1;--line:#273944;--ok:#46c28a;--warn:#e5a93a;--bad:#ef6a60;--acc:#7fb4de;--okbg:#14342a;--warnbg:#3a2f12;--badbg:#3c1b19}}
+:root[data-theme="dark"]{--bg:#0e171d;--surf:#16232b;--ink:#e6eef3;--mut:#93a5b1;--line:#273944;--ok:#46c28a;--warn:#e5a93a;--bad:#ef6a60;--acc:#7fb4de;--okbg:#14342a;--warnbg:#3a2f12;--badbg:#3c1b19}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
+header{padding:18px 0 8px}
+.brand{font-weight:800;font-size:1.4rem}
+.brand small{display:block;font-weight:400;font-size:.8rem;color:var(--mut)}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:22px}
+nav a{padding:10px 14px;color:var(--mut);text-decoration:none;white-space:nowrap;border-bottom:3px solid transparent;font-weight:600}
+nav a.on{color:var(--ink);border-color:var(--acc)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+h1{font-size:1.9rem;line-height:1.3;margin:6px 0;font-weight:800}
+p.lead{color:var(--mut);margin:0 0 18px}
+.box{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px}
+.row{display:flex;gap:8px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px}
+textarea{min-height:170px;resize:vertical}
+button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:12px 20px;background:var(--acc);color:#fff;cursor:pointer;white-space:nowrap}
+:root:not([data-theme="light"]) button:not(.ghost){color:#0e171d}
+button.ghost{background:transparent;color:var(--mut);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center;color:var(--mut);font-size:.9rem}
+.chips button{padding:4px 10px;font-size:.85rem;font-weight:400}
+#res{margin-top:18px}
+.verdict{border-radius:10px;padding:16px;display:flex;gap:16px;align-items:center}
+.verdict.ok{background:var(--okbg)}.verdict.warn{background:var(--warnbg)}.verdict.bad{background:var(--badbg)}
+.score{font-size:2.4rem;font-weight:800;line-height:1;min-width:84px;text-align:center}
+.ok .score,.ok h2{color:var(--ok)}.warn .score,.warn h2{color:var(--warn)}.bad .score,.bad h2{color:var(--bad)}
+.verdict h2{margin:0;font-size:1.25rem}.verdict p{margin:0;color:var(--mut);font-size:.92rem;word-break:break-all}
+.meter{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));position:relative;margin:14px 0 4px}
+.meter i{position:absolute;top:-4px;width:4px;height:16px;background:var(--ink);border-radius:2px;transform:translateX(-50%)}
+h3{margin:20px 0 8px;font-size:1.05rem}
+ul.why{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.why li{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+ul.why b{display:block}ul.why span{color:var(--mut);font-size:.9rem}
+.tag{flex:none;font-size:.78rem;border-radius:20px;padding:0 10px;margin-top:3px}
+.tag.r{background:var(--badbg);color:var(--bad)}.tag.g{background:var(--okbg);color:var(--ok)}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem}
+.tbl td,.tbl th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl td.u{word-break:break-all;max-width:300px}
+.pill{border-radius:20px;padding:1px 10px;font-size:.8rem;white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.bad{background:var(--badbg);color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:1.7rem;line-height:1.2}.stat span{color:var(--mut);font-size:.88rem}
+.bar{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:10px 0;background:var(--line)}
+.bar div{height:100%}
+.rb{display:grid;grid-template-columns:170px 1fr 30px;gap:8px;align-items:center;font-size:.9rem;margin:5px 0}
+.rb div.t{background:var(--line);height:10px;border-radius:5px}.rb div.t i{display:block;height:100%;background:var(--acc);border-radius:5px}
+.empty{color:var(--mut);text-align:center;padding:24px 0}
+.hide{display:none}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.82rem;line-height:1.7}
+footer b{color:var(--ink)}
+@media(max-width:520px){.row{flex-direction:column}.rb{grid-template-columns:110px 1fr 24px}h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">Shield<small>Phishing detection</small></div></header>
+<nav id="nav"><a href="#scan">Scan a link</a><a href="#email">Check an email</a><a href="#history">History</a><a href="#dashboard">Dashboard</a></nav>
+
+<section id="scan">
+<h1>Is this link safe or a trap?</h1>
+<p class="lead">Paste a link to see how likely it is to be phishing, and exactly why.</p>
+<div class="box"><div class="row"><input id="u" placeholder="https://example.com/login" autocomplete="off" aria-label="Link"><button id="go">Scan</button></div>
+<div class="chips">Try an example:
+<button class="ghost" data-u="https://www.google.com/search?q=cats">Safe link</button>
+<button class="ghost" data-u="http://paypal-secure-login.xyz/verify/account?id=88213">Phishing link</button>
+<button class="ghost" data-u="http://192.168.4.7@bit.ly/free-gift">Hidden link</button></div></div>
+<div id="res"></div>
+</section>
+
+<section id="email" class="hide">
+<h1>Is this message genuine?</h1>
+<p class="lead">Paste the email or message text (Arabic or English). We analyse it and scan any links inside.</p>
+<div class="box"><textarea id="m" placeholder="Dear customer, your account will be suspended within 24 hours. Click here to confirm your password..."></textarea>
+<div class="row" style="margin-top:10px"><button id="goE">Analyse message</button><button class="ghost" id="exE">Example</button></div></div>
+<div id="resE"></div>
+</section>
+
+<section id="history" class="hide"><h1>Scan history</h1><div id="hist"></div></section>
+<section id="dashboard" class="hide"><h1>Security dashboard</h1><div id="dash"></div></section>
+<footer><b>Sphinx University</b> · Faculty of Computers and Artificial Intelligence<br>Supervisor: Dr. Yasser Abdelsattar<br>Team: Abdelrahman Mahmoud Mohamed Abdelaal (4241438) · Shaaban Hefny Mahmoud Sayed (4241328)</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---------- Classifier: Logistic Regression ---------- */
+const BIAS=-2.5;
+const KW=['login','signin','verify','secure','account','update','confirm','password','bank','wallet','billing','suspend','unlock','recover','payment'];
+const BAD_TLD=['xyz','top','tk','ml','ga','cf','gq','click','zip','work','support','rest','icu','buzz','live'];
+const SHORT=['bit.ly','tinyurl.com','t.co','goo.gl','is.gd','cutt.ly','rb.gy','ow.ly'];
+const BRANDS={paypal:'paypal.com',google:'google.com',facebook:'facebook.com',apple:'apple.com',microsoft:'microsoft.com',amazon:'amazon.com',instagram:'instagram.com',netflix:'netflix.com',whatsapp:'whatsapp.com',binance:'binance.com',vodafone:'vodafone.com.eg',fawry:'fawry.com.eg'};
+const reg=h=>{const p=h.split('.');if(p.length<3)return h;const l=p.length;return (p[l-1].length==2&&['co','com','org','net','gov','edu'].includes(p[l-2]))?p.slice(-3).join('.'):p.slice(-2).join('.')};
+function parse(raw){let s=raw.trim();if(!/^[a-z]+:\/\//i.test(s))s='http://'+s;try{return new URL(s)}catch(e){return null}}
+function features(raw){
+ const u=parse(raw);if(!u)return null;
+ const full=raw.trim(),host=u.hostname.toLowerCase(),R=reg(host),tld=host.split('.').pop();
+ const kws=KW.filter(k=>(host+u.pathname).toLowerCase().includes(k));
+ const brand=Object.keys(BRANDS).find(b=>(host+u.pathname).includes(b)&&R!==BRANDS[b]);
+ const digits=(host.match(/\d/g)||[]).length/host.length;
+ return [
+ {w:3.0,v:+/^\d{1,3}(\.\d{1,3}){3}$/.test(host),t:'Uses an IP address instead of a site name',d:'Real websites rarely show a raw IP address to users.'},
+ {w:2.2,v:+full.includes('@'),t:'Contains an “@” symbol',d:'It can hide the real destination that follows the symbol.'},
+ {w:3.0,v:+!!brand,t:brand?'Impersonates '+brand+' but is not its official domain':'Brand impersonation',d:'A well-known company name appears, but the main domain is different ('+R+').'},
+ {w:1.6,v:+BAD_TLD.includes(tld),t:'Domain extension (.'+tld+') is common in phishing',d:'Cheap or free extensions are often used by fraudulent sites.'},
+ {w:1.8,v:+host.includes('xn--'),t:'Disguised characters in the domain (Punycode)',d:'It can look like a real site while using characters from another script.'},
+ {w:1.0,v:+SHORT.includes(R),t:'Shortened link',d:'You cannot see the real destination before opening it.'},
+ {w:.7,v:Math.min(kws.length,3),t:kws.length?'Sensitive words in the link: '+kws.join(', '):'Sensitive words',d:'Words such as login and verify are used to lure users.'},
+ {w:1.2,v:+(host.split('.').length>=5),t:'Many subdomains',d:'They crowd the link so the fake part looks like the main one.'},
+ {w:.8,v:+((host.match(/-/g)||[]).length>=2),t:'Many hyphens in the domain name',d:'A known pattern in fake domains.'},
+ {w:.9,v:+(u.protocol!=='https:'),t:'Connection is not encrypted (HTTP)',d:'Without HTTPS, anything you send can be read in transit.'},
+ {w:.9,v:+(full.length>75),t:'Very long link ('+full.length+' characters)',d:'Length is used to hide suspicious parts.'},
+ {w:.6,v:+/%[0-9a-f]{2}/i.test(full),t:'Encoded characters (%) in the link',d:'May be an attempt at obfuscation.'},
+ {w:.8,v:+(digits>.3),t:'Many digits in the domain name',d:'Genuine domains rarely contain many digits.'}
+ ];
+}
+const sig=z=>1/(1+Math.exp(-z));
+function scoreUrl(raw){const f=features(raw);if(!f)return null;
+ let z=BIAS;f.forEach(x=>z+=x.w*x.v);
+ const p=Math.round(sig(z)*100);
+ return{p,verdict:verdict(p),f:f.filter(x=>x.v>0).sort((a,b)=>b.w*b.v-a.w*a.v)}}
+const verdict=p=>p<30?'ok':p<65?'warn':'bad';
+const VT={ok:'Probably safe',warn:'Suspicious',bad:'Dangerous: likely phishing'};
+/* ---------- Email analysis (Arabic and English patterns) ---------- */
+const EP=[
+ [/urgent|immediately|within 24|suspend|expire|عاجل|فورا|فوراً|خلال 24|إيقاف حسابك|تعليق/i,1.3,'Urgency and threats','The scammer wants you to act fast without thinking.'],
+ [/password|\bpin\b|otp|cvv|card number|كلمة المرور|الرقم السري|رمز التحقق|بيانات البطاقة/i,1.8,'Asks for sensitive data','Real organisations do not ask for passwords or codes by message.'],
+ [/click (here|below)|اضغط|انقر/i,.8,'Urges you to click a link','It leads you to a fake site.'],
+ [/winner|prize|lottery|gift|congratulations|مبروك|جائزة|فزت|ربحت/i,1.5,'Surprise prize or winnings','A common lure in scams.'],
+ [/transfer|wire|bitcoin|crypto|تحويل|عملات رقمية/i,.8,'Mentions money transfers','Linked to requests for money.'],
+ [/dear (customer|user)|عزيزي العميل|عزيزي المستخدم/i,.7,'Generic greeting, not your name','Genuine messages usually address you by name.'],
+ [/legal action|account will be|إجراء قانوني|غرامة/i,1.0,'Threat of legal action or a fine','Pressure used to force you to comply.'],
+ [/attachment|\.exe|\.zip|مرفق/i,.5,'Suspicious attachment','May contain malware.']];
+function scoreMail(t){
+ let z=-1.5;const f=[];
+ EP.forEach(([re,w,tt,d])=>{if(re.test(t)){z+=w;f.push({w,v:1,t:tt,d})}});
+ const urls=t.match(/(https?:\/\/|www\.)[^\s<>"'),]+/gi)||[];
+ urls.forEach(x=>{const r=scoreUrl(x);if(r&&r.p>=65){z+=3;f.push({w:3,v:1,t:'Contains a dangerous link',d:x+' ('+r.p+'% risk)'})}});
+ f.sort((a,b)=>b.w-a.w);
+ const p=Math.round(sig(z)*100);return{p,verdict:verdict(p),f}}
+/* ---------- Rendering ---------- */
+function render(el,r,label){
+ const why=r.f.length?r.f.map(x=>`<li><span class="tag r">Risk</span><div><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div></li>`).join(''):`<li><span class="tag g">Clean</span><div><b>No clear phishing signs found</b><span>This is not a guarantee. Stay careful.</span></div></li>`;
+ el.innerHTML=`<div class="verdict ${r.verdict}"><div class="score">${r.p}%</div><div><h2>${VT[r.verdict]}</h2><p>${esc(label.slice(0,90))}</p></div></div>
+ <div class="meter"><i style="left:${r.p}%"></i></div>
+ <h3>Why this result?</h3><ul class="why">${why}</ul>`}
+/* ---------- History ---------- */
+const KEY='shield-history';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}};
+const save=a=>{try{localStorage.setItem(KEY,JSON.stringify(a.slice(0,100)))}catch(e){}};
+function log(type,input,r){const a=load();a.unshift({t:Date.now(),type,input:input.slice(0,200),p:r.p,v:r.verdict,why:r.f.map(x=>x.t.split(':')[0])});save(a)}
+/* ---------- Events ---------- */
+function scanNow(){const v=$('#u').value.trim();if(!v){$('#res').innerHTML='<p class="empty">Type or paste a link first.</p>';return}
+ const r=scoreUrl(v);if(!r){$('#res').innerHTML='<p class="empty">That link could not be read. Check that it is typed correctly.</p>';return}
+ render($('#res'),r,v);log('Link',v,r)}
+$('#go').onclick=scanNow;$('#u').onkeydown=e=>{if(e.key==='Enter')scanNow()};
+document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{$('#u').value=b.dataset.u;scanNow()});
+$('#exE').onclick=()=>{$('#m').value='Dear customer,\nSuspicious activity was detected and your account will be suspended within 24 hours. Click here to confirm your password and verification code:\nhttp://paypal-secure-login.xyz/verify'};
+$('#goE').onclick=()=>{const t=$('#m').value.trim();if(!t){$('#resE').innerHTML='<p class="empty">Paste the message text first.</p>';return}
+ const r=scoreMail(t);render($('#resE'),r,t.replace(/\s+/g,' '));log('Email',t.replace(/\s+/g,' '),r)};
+function showHist(){const a=load();$('#hist').innerHTML=a.length?`<div class="box" style="overflow-x:auto"><table class="tbl"><tr><th>Type</th><th>Content</th><th>Result</th><th>Time</th></tr>${a.map(x=>`<tr><td>${x.type}</td><td class="u">${esc(x.input.slice(0,80))}</td><td><span class="pill ${x.v}">${x.p}% ${VT[x.v].split(':')[0]}</span></td><td>${new Date(x.t).toLocaleString('en-GB',{dateStyle:'short',timeStyle:'short'})}</td></tr>`).join('')}</table></div><p><button class="ghost" id="clr">Clear history</button></p>`:'<p class="empty">No scans yet. Start by scanning a link.</p>';
+ const c=$('#clr');if(c)c.onclick=()=>{save([]);showHist()}}
+function showDash(){const a=load();if(!a.length){$('#dash').innerHTML='<p class="empty">Statistics appear after your first scan.</p>';return}
+ const n=a.length,c={ok:0,warn:0,bad:0},rs={};a.forEach(x=>{c[x.v]++;x.why.forEach(w=>rs[w]=(rs[w]||0)+1)});
+ const top=Object.entries(rs).sort((a,b)=>b[1]-a[1]).slice(0,6),mx=top.length?top[0][1]:1;
+ const avg=Math.round(a.reduce((s,x)=>s+x.p,0)/n);
+ $('#dash').innerHTML=`<div class="stats"><div class="stat"><b>${n}</b><span>Total scans</span></div><div class="stat"><b style="color:var(--bad)">${c.bad}</b><span>Dangerous</span></div><div class="stat"><b style="color:var(--warn)">${c.warn}</b><span>Suspicious</span></div><div class="stat"><b style="color:var(--ok)">${c.ok}</b><span>Safe</span></div><div class="stat"><b>${avg}%</b><span>Average risk score</span></div></div>
+ <h3>Result distribution</h3><div class="bar" role="img" aria-label="Result distribution"><div style="width:${c.ok/n*100}%;background:var(--ok)"></div><div style="width:${c.warn/n*100}%;background:var(--warn)"></div><div style="width:${c.bad/n*100}%;background:var(--bad)"></div></div>
+ <h3>Most frequent risk reasons</h3>${top.length?top.map(([k,v])=>`<div class="rb"><span>${esc(k)}</span><div class="t"><i style="width:${v/mx*100}%"></i></div><b>${v}</b></div>`).join(''):'<p class="empty">No risk reasons recorded.</p>'}`}
+function route(){const h=(location.hash||'#scan').slice(1);const id=['scan','email','history','dashboard'].includes(h)?h:'scan';
+ ['scan','email','history','dashboard'].forEach(s=>$('#'+s).classList.toggle('hide',s!==id));
+ document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.hash==='#'+id));
+ if(id==='history')showHist();if(id==='dashboard')showDash()}
+addEventListener('hashchange',route);route();
+</script>
+</body>
+</html>
